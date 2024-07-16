@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 llm = (ChatOpenAI(temperature=0,
                   streaming=True,
                   model_name=st.session_state['openai_model'],
-                  api_key=st.secrets[st.session_state['openai_api_key']])
+                  api_key=st.secrets['OPENAI_API_KEY'])
        if st.session_state['openai_model'].startswith('gpt')
        else ChatOpenAI(temperature=0,
                        streaming=True,
