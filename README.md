@@ -48,6 +48,8 @@ To get started with WeDoScribble, follow these steps:
     - `libreoffice` (MS Office docs)
     - `pandoc` (EPUBs)
 
+    Also methods associated with web search and reading webpages use Selenium, which operates headless `chromium` browser instances.
+
 4. **Set up API keys**:
     Create a `~/.streamlit/secrets.toml` file and add your OpenAI and OpenWeatherMap API keys:
     ```toml
@@ -63,8 +65,6 @@ To get started with WeDoScribble, follow these steps:
 ## Usage
 
 Once the application is running, you can interact with WeDoScribble through the Streamlit interface. You can ask it to perform various tasks such as web searches, file handling, fetching weather information, searching biomedical literature, running Python code, and managing conversations.
-
-**Note**: Methods associated with web search and reading webpages use Selenium, which operates headless browsers.
 
 ## Contributing
 
