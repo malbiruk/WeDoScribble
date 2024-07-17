@@ -83,8 +83,8 @@ def main():
                            api_key='sk-no-key-required'
                            ))
 
-    from tools.google_search import read_webpage, web_search
-    # from tools.ddg_search_tool import web_search
+    # from tools.google_search import read_webpage, web_search  # Google Search via Selenium
+    from tools.web_search import read_webpage, web_search  # DuckDuckGo without browser
     from tools.read_files import read_any_file, read_pdf
 
     tools = load_tools(["openweathermap-api"]) + [
@@ -92,7 +92,7 @@ def main():
         PythonREPLTool(), PubmedQueryRun()
     ] + FileManagementToolkit(
         root_dir=str('/home/klim/'),
-        selected_tools=["read_file", "write_file", "list_directory", "file_search"],
+        selected_tools=["read_file", "list_directory", "file_search"],
     ).get_tools()
 
     prompt = ChatPromptTemplate.from_messages([

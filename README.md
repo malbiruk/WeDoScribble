@@ -48,7 +48,7 @@ To get started with WeDoScribble, follow these steps:
     - `libreoffice` (MS Office docs)
     - `pandoc` (EPUBs)
 
-    Also methods associated with web search and reading webpages use Selenium, which operates headless `chromium` browser instances.
+    **Note**: two methods associated with web search and reading webpages are implemented. By default, the agent uses DuckDuckGo without browser, which is faster. But without JavaScript, not all pages are available. Another option uses Selenium, which operates headless browser instances, in which case you should also install `chromium` (`/usr/bin/chromium`).
 
 4. **Set up API keys**:
     Create a `~/.streamlit/secrets.toml` file and add your OpenAI and OpenWeatherMap API keys:
