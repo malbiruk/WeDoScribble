@@ -37,13 +37,13 @@ async def get_website_text(url: str, timeout: int = 10) -> str:
         soup = BeautifulSoup(html, "html.parser")
         return soup.get_text()
     except aiohttp.ClientError as e:
-        logger.error(f"failed to fetch the website 😞\n{url}\n%s", e)
+        logger.warning(f"failed to fetch the website 😞\n{url}\n%s", e)
         return None
     except UnicodeDecodeError as e:
-        logger.error(f"failed to decode the website 😞\n{url}\n%s", e)
+        logger.warning(f"failed to decode the website 😞\n{url}\n%s", e)
         return None
     except asyncio.TimeoutError as e:
-        logger.error(f"the website exceeded timeout 😞\n{url}\n%s", e)
+        logger.warning(f"the website exceeded timeout 😞\n{url}\n%s", e)
         return None
 
 
@@ -68,18 +68,12 @@ RELEVANT INFORMATION:
 """
     prompt = PromptTemplate.from_template(extract_prompt)
     extraction_chain = prompt | llm | StrOutputParser()
-    if len(content) < 100000 * 4:
+    if len(content) < 85000 * 4:
         return await extraction_chain.ainvoke({"text": content, "query": query})
 
-    text_splitter = RecursiveCharacterTextSplitter(
-        separators=["\n\n", "\n"], chunk_size=30000, chunk_overlap=1000)
-    docs = text_splitter.split_text(content)
-
-    results = await asyncio.gather(
-        *[extraction_chain.ainvoke({"text": doc, "query": query}) for doc in docs]
-    )
-
-    return await extraction_chain.ainvoke({"text": '\n\n'.join(results), "query": query})
+    # don't load huge websites
+    logger.warning("Encountered a huge website, won't process")
+    return None
 
 
 async def search_and_extract(query: str):
@@ -104,7 +98,14 @@ def web_search(query: str) -> str:
     for a given query along with the source URLs as json
     """
     results = asyncio.run(search_and_extract(query))
-    return json.dumps(results, indent=2)
+    output = json.dumps(results, indent=2)
+    
+    while len(output) > 85000 * 4:  # drop last sites if exceeding context window
+        results = results[:-1]
+        output = json.dumps(results, indent=2)
+        logger.warning("The context window is close to be exceeded: "
+                       "dropping info from the last website")
+    return output
 
 
 @tool
