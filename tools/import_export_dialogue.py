@@ -23,7 +23,8 @@ def create_export_dialogue_tool(history):
 
         Is used when user asks to export/save current dialogue.
 
-        If user doesn't specify out_path, generate useful name (as a title to the current dialogue),
+        If user doesn't specify out_path, generate a useful name \
+        (as a title to the current dialogue),
         but keep it lowercase and with "_" instead of spaces
         '''
         messages_history = '\n\n'.join([f'{msg.type}: {msg.content}'
@@ -37,9 +38,11 @@ def create_export_dialogue_tool(history):
 
 def create_import_dialogue_tool(history):
     @tool
-    def import_dialogue(file_path: str) -> str:
+    def import_dialogue(file_path: str, override_current: bool = True) -> str:
         '''
         import messages history from file_path
+
+        override_current argument clears current dialogue before loading
 
         Is used when user asks to import/load dialogue/conversation.
         '''
@@ -48,7 +51,8 @@ def create_import_dialogue_tool(history):
                 conversation = f.read()
             messages = parse_conversation(conversation)
 
-            history.clear()
+            if override_current:
+                history.clear()
             for msg in messages:
                 if msg['role'] == 'human':
                     history.add_user_message(msg['content'])
@@ -56,6 +60,7 @@ def create_import_dialogue_tool(history):
                     history.add_ai_message(msg['content'])
 
             st.rerun()
+            return "The conversation is successfully loaded."
 
         except FileNotFoundError:
             return "Provided file_path does not exist!"
