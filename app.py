@@ -19,7 +19,6 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_experimental.tools import PythonREPLTool
 from langchain_openai import ChatOpenAI
 from PIL import Image
-from tools.import_export_dialogue import export_dialogue, import_dialogue
 
 os.environ["OPENWEATHERMAP_API_KEY"] = st.secrets['OPENWEATHERMAP_API_KEY']
 
@@ -84,15 +83,23 @@ def main():
                            ))
 
     # from tools.google_search import read_webpage, web_search  # Google Search via Selenium
-    from tools.web_search import read_webpage, web_search  # DuckDuckGo without browser
+    from tools.import_export_dialogue import (create_export_dialogue_tool,
+                                              create_import_dialogue_tool)
     from tools.read_files import read_any_file, read_pdf
+    from tools.web_search import read_webpage  # DuckDuckGo without browser
+    from tools.web_search import web_search
+
+    history = StreamlitChatMessageHistory(key="chat_history")
+
+    export_dialogue = create_export_dialogue_tool(history)
+    import_dialogue = create_import_dialogue_tool(history)
 
     tools = load_tools(["openweathermap-api"]) + [
         web_search, read_webpage, read_pdf, read_any_file, export_dialogue, import_dialogue,
-        PythonREPLTool(), PubmedQueryRun()
+        PythonREPLTool(),  # PubmedQueryRun()
     ] + FileManagementToolkit(
         root_dir=str('/home/klim/'),
-        selected_tools=["read_file", "list_directory", "file_search"],
+        selected_tools=["read_file", "write_file", "list_directory", "file_search"],
     ).get_tools()
 
     prompt = ChatPromptTemplate.from_messages([
@@ -104,7 +111,6 @@ def main():
     agent = create_openai_tools_agent(llm, tools, prompt)
     # agent = CustomAgent(llm, tools, system_prompt).agent
 
-    history = StreamlitChatMessageHistory(key="chat_history")
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True,
                                    handle_parsing_errors=True)
     agent_with_chat_history = RunnableWithMessageHistory(
