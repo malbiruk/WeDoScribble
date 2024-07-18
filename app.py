@@ -50,7 +50,7 @@ chat_avatars = {
 
 def init_session_state():
     if 'openai_model' not in st.session_state:
-        st.session_state['openai_model'] = ''
+        st.session_state['openai_model'] = 'gpt-4o'
 
 
 def main():
@@ -67,8 +67,8 @@ def main():
     with open('prompts/system_prompt.txt', encoding='utf-8') as f:
         system_prompt = f.read()
 
-    st.session_state['openai_model'] = st.selectbox('Choose a model',
-                                                    ('gpt-4o', 'gpt-3.5-turbo'))
+    # st.session_state['openai_model'] = st.selectbox('Choose a model',
+    #                                                 ('gpt-4o', 'gpt-3.5-turbo'))
 
     llm = (ChatOpenAI(temperature=0,
                       streaming=True,
