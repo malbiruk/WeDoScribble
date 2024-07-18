@@ -1,13 +1,12 @@
 # WeDoScribble
 
-WeDoScribble is an AI assistant designed to help with a variety of tasks, including web searches, file handling, weather information, biomedical literature searches, Python execution, and conversation management.
+WeDoScribble is an AI assistant designed to help with a variety of tasks, including web searches, file handling, weather information, Python execution, and conversation management.
 
 ## Features
 
 - **Web Searches**: Search the web for information and get summarized results with relevant links.
 - **File Handling**: Read, summarize, and write various types of files, including PDFs, documents, tables, and images.
 - **Weather Information**: Fetch current weather information for any specified location.
-- **Biomedical Literature**: Search PubMed for biomedical literature and get relevant articles and summaries.
 - **Python Execution**: Run Python code to perform calculations, data analysis, and more.
 - **Conversation Management**: Save and load conversations, allowing you to continue from where you left off.
 
@@ -48,7 +47,7 @@ To get started with WeDoScribble, follow these steps:
     - `libreoffice` (MS Office docs)
     - `pandoc` (EPUBs)
 
-    **Note**: two methods associated with web search and reading webpages are implemented. By default, the agent uses DuckDuckGo without browser, which is faster. But without JavaScript, not all pages are available. Another option uses Selenium, which operates headless browser instances, in which case you should also install `chromium` (`/usr/bin/chromium`).
+    **Note**: two methods associated with web search and reading webpages are implemented. By default, the agent uses DuckDuckGo without browser, which is faster. However without JavaScript not all pages are available. Another option uses Google Search via Selenium, which operates headless browser instances, in which case you should also install `chromium` (`/usr/bin/chromium`).
 
 4. **Set up API keys**:
     Create a `~/.streamlit/secrets.toml` file and add your OpenAI and OpenWeatherMap API keys:
@@ -64,7 +63,7 @@ To get started with WeDoScribble, follow these steps:
 
 ## Usage
 
-Once the application is running, you can interact with WeDoScribble through the Streamlit interface. You can ask it to perform various tasks such as web searches, file handling, fetching weather information, searching biomedical literature, running Python code, and managing conversations.
+Once the application is running, you can interact with WeDoScribble through the Streamlit interface. You can ask it to perform various tasks such as web searches, file handling, fetching weather information, running Python code, and managing conversations.
 
 ## Contributing
 
