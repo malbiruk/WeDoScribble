@@ -18,7 +18,7 @@ from langchain_openai import ChatOpenAI
 logger = logging.getLogger(__name__)
 
 llm = ChatOpenAI(temperature=0,
-                 model_name='gpt-4o')
+                 model_name='gpt-4o-mini')
 
 
 async def get_website_text(url: str, timeout: int = 10) -> str:
@@ -99,7 +99,7 @@ def web_search(query: str) -> str:
     """
     results = asyncio.run(search_and_extract(query))
     output = json.dumps(results, indent=2)
-    
+
     while len(output) > 85000 * 4:  # drop last sites if exceeding context window
         results = results[:-1]
         output = json.dumps(results, indent=2)
