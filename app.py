@@ -13,7 +13,7 @@ from langchain_community.agent_toolkits.load_tools import load_tools
 from langchain_community.callbacks.streamlit import StreamlitCallbackHandler
 from langchain_community.chat_message_histories import \
     StreamlitChatMessageHistory
-from langchain_community.tools.pubmed.tool import PubmedQueryRun
+# from langchain_community.tools.pubmed.tool import PubmedQueryRun
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_experimental.tools import PythonREPLTool
@@ -85,7 +85,7 @@ def main():
     # from tools.google_search import read_webpage, web_search  # Google Search via Selenium
     from tools.import_export_dialogue import (create_export_dialogue_tool,
                                               create_import_dialogue_tool)
-    from tools.read_files import read_any_file, read_pdf
+    from tools.read_files import read_any_file, read_google_docs, read_pdf
     from tools.web_search import read_webpage  # DuckDuckGo without browser
     from tools.web_search import web_search
 
@@ -95,7 +95,8 @@ def main():
     import_dialogue = create_import_dialogue_tool(history)
 
     tools = load_tools(["openweathermap-api"]) + [
-        web_search, read_webpage, read_pdf, read_any_file, export_dialogue, import_dialogue,
+        web_search, read_webpage, read_pdf, read_any_file, read_google_docs,
+        export_dialogue, import_dialogue,
         PythonREPLTool(),  # PubmedQueryRun()
     ] + FileManagementToolkit(
         root_dir=str('/home/klim/'),
