@@ -5,7 +5,7 @@ WeDoScribble is an AI assistant designed to help with a variety of tasks, includ
 ## Features
 
 - **Web Searches**: Search the web for information and get summarized results with relevant links.
-- **File Handling**: Read, summarize, and write various types of files, including PDFs, documents, tables, and images.
+- **File Handling**: Read, summarize, and write various types of files, including PDFs, documents, tables, and images (only OCR).
 - **Weather Information**: Fetch current weather information for any specified location.
 - **Python Execution**: Run Python code to perform calculations, data analysis, and more.
 - **Conversation Management**: Save and load conversations, allowing you to continue from where you left off.
