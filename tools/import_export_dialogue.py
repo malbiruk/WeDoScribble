@@ -1,7 +1,8 @@
 import re
+from pathlib import Path
 
-from langchain.tools import tool
 import streamlit as st
+from langchain.tools import tool
 
 
 def parse_conversation(conversation):
@@ -30,7 +31,7 @@ def create_export_dialogue_tool(history):
         messages_history = '\n\n'.join([f'{msg.type}: {msg.content}'
                                         for msg in history.messages])
 
-        with open(out_path, 'w', encoding='utf-8') as f:
+        with open(Path(out_path), 'w', encoding='utf-8') as f:
             f.write(messages_history)
 
     return export_dialogue
@@ -47,7 +48,7 @@ def create_import_dialogue_tool(history):
         Is used when user asks to import/load dialogue/conversation.
         '''
         try:
-            with open(file_path, encoding='utf-8') as f:
+            with open(Path(file_path), encoding='utf-8') as f:
                 conversation = f.read()
             messages = parse_conversation(conversation)
 
