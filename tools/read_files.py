@@ -69,8 +69,4 @@ def read_google_docs(url: str) -> str:
             file.write(response.content)
         return f"File downloaded successfully to {file_path.absolute()}. "\
             "Now read it using read_any_file tool."
-    else:
-        return "Failed to download the file."
-
-
-# %%
+    return "Failed to download the file."
