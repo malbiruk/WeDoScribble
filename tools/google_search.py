@@ -97,22 +97,12 @@ Write a summary of the following text for "{query}":
 SUMMARY:
 """
 
-llm = (ChatOpenAI(temperature=0,
-                  streaming=True,
-                  model_name=st.session_state['openai_model'],
-                  api_key=st.secrets['OPENAI_API_KEY'])
-       if st.session_state['openai_model'].startswith('gpt')
-       else ChatOpenAI(temperature=0,
-                       streaming=True,
-                       model_name='gpt-3.5-turbo',
-                       base_url='http://192.168.108.17:8001/v1',
-                       api_key='sk-no-key-required'
-                       ))
+llm = ChatOpenAI(temperature=0, model_name='gpt-4o-mini')
 
 
 def summarize(query, content, prompt=default_prompt) -> str:
     text_splitter = RecursiveCharacterTextSplitter(
-        separators=["\n\n", "\n"], chunk_size=12000, chunk_overlap=1000)
+        separators=["\n\n", "\n"], chunk_size=30000 * 4, chunk_overlap=4000)
     docs = text_splitter.create_documents([content])
 
     map_prompt_template = PromptTemplate(

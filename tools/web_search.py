@@ -113,4 +113,8 @@ def read_webpage(url: str) -> str:
     """
     fetches the content of a single webpage
     """
-    return asyncio.run(get_website_text(url))
+    content = asyncio.run(get_website_text(url))
+    if len(content) < 85000 * 4:
+        return content
+    else:
+        return "Couldn't load the website contents. It's too big."
