@@ -19,7 +19,7 @@ def read_pdf(file_path: str, query: str) -> str:
     loader = PyMuPDFLoader(Path(file_path))
     docs = loader.load()
     data = "".join([doc.page_content for doc in docs])
-    if len(data) > 85000 * 4:
+    if len(data) > 30000 * 4:
         return summarize(query, data)
     return docs
 
@@ -35,7 +35,7 @@ def read_any_file(file_path: str, query: str) -> str:
     '''
     loader = UnstructuredFileLoader(Path(file_path), mode="single")
     data = loader.load()
-    if len(data[0].page_content) > 85000 * 4:
+    if len(data[0].page_content) > 30000 * 4:
         return summarize(query, data[0].page_content)
     return data
 
