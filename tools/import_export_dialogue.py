@@ -6,13 +6,26 @@ from langchain.tools import tool
 
 
 def parse_conversation(conversation):
+    lines = conversation.strip().split('\n')
     messages = []
-    pattern = r'(\w+):\s(.*?)\n(?=\w+:|$)'
-    matches = re.findall(pattern, conversation, re.DOTALL)
-
-    for role, content in matches:
+    role = None
+    content = ''
+    for line in lines:
+        line = line.strip()
+        if line.startswith('human:'):
+            if role is not None:
+                messages.append({'role': role, 'content': content.strip()})
+            role = 'human'
+            content = line[6:].strip()
+        elif line.startswith('ai:'):
+            if role is not None:
+                messages.append({'role': role, 'content': content.strip()})
+            role = 'ai'
+            content = line[3:].strip()
+        elif line:
+            content += '\n' + line
+    if role is not None:
         messages.append({'role': role, 'content': content.strip()})
-
     return messages
 
 
