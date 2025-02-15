@@ -2,49 +2,56 @@ import asyncio
 import json
 import logging
 
-import aiohttp
+import nodriver as uc
 from bs4 import BeautifulSoup
-from charset_normalizer import detect
 from duckduckgo_search import DDGS
 from langchain.chains.summarize import load_summarize_chain
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.tools import tool
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
-from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
 
 # pylint: disable = unsupported-binary-operation
 
 logger = logging.getLogger(__name__)
 
-llm = ChatOpenAI(temperature=0,
-                 model_name='gpt-4o-mini')
+llm = ChatOllama(temperature=0,
+                 model='llama3.2:3b')
+
+default_prompt = """
+Write a summary of the following text for "{query}":
+"{text}"
+SUMMARY:
+"""
 
 
-async def get_website_text(url: str, timeout: int = 10) -> str:
-    try:
-        headers = {
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"}
-        async with aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=timeout),
-            headers=headers,
-            fallback_charset_resolver=lambda r, b: detect(b)["encoding"] or "utf-8"
-        ) as session:
-            async with session.get(url) as response:
-                response.raise_for_status()
-                html = await response.text()
-        soup = BeautifulSoup(html, "html.parser")
-        return soup.get_text()
-    except aiohttp.ClientError as e:
-        logger.warning(f"failed to fetch the website 😞\n{url}\n%s", e)
-        return None
-    except UnicodeDecodeError as e:
-        logger.warning(f"failed to decode the website 😞\n{url}\n%s", e)
-        return None
-    except asyncio.TimeoutError as e:
-        logger.warning(f"the website exceeded timeout 😞\n{url}\n%s", e)
-        return None
+def summarize(query, content, prompt=default_prompt) -> str:
+    text_splitter = RecursiveCharacterTextSplitter(
+        separators=["\n\n", "\n"], chunk_size=30000 * 4, chunk_overlap=4000)
+    docs = text_splitter.create_documents([content])
+
+    map_prompt_template = PromptTemplate(
+        template=prompt, input_variables=["text", "query"])
+
+    summary_chain = load_summarize_chain(
+        llm=llm,
+        chain_type="map_reduce",
+        map_prompt=map_prompt_template,
+        combine_prompt=map_prompt_template,
+        verbose=False,
+    )
+
+    return summary_chain.run(input_documents=docs, query=query)
+
+
+async def get_website_text(url: str) -> str:
+    browser = await uc.start(headless=True)
+    page = await browser.get(url)
+    page_content = await page.get_content()
+    soup = BeautifulSoup(page_content)
+    await page.close()
+    return soup.get_text()
 
 
 async def ddg_search(query: str, n_results: int) -> list[dict]:
@@ -111,7 +118,7 @@ def web_search(query: str) -> str:
 @tool
 def read_webpage(url: str) -> str:
     """
-    fetches the content of a single webpage
+    fetches the content of a single webpage. Pass ONLY ONE URL
     """
     content = asyncio.run(get_website_text(url))
     if len(content) < 85000 * 4:

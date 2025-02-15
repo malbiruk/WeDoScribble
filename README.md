@@ -1,6 +1,6 @@
 # WeDoScribble
 
-WeDoScribble is an AI assistant designed to help with a variety of tasks, including web searches, file handling, weather information, Python execution, and conversation management.
+WeDoScribble is an AI assistant designed to help with a variety of tasks, including web searches, file handling, weather information, Python execution, and conversation management. Uses local 8B llama3.1 Ollama model.
 
 ## Demo
 https://github.com/user-attachments/assets/98c054cb-1de2-4a8c-a0f3-acab8eb2fc30
@@ -41,6 +41,14 @@ To get started with WeDoScribble, follow these steps:
     pip install -r requirements.txt
     ```
 
+    ```bash
+    curl -fsSL https://ollama.com/install.sh | sh
+    ```
+
+    ```bash
+    ollama pull deepseek-r1
+    ```
+
 3. **Install system dependencies**:
     Install the following system dependencies if they are not already available on your system with e.g. `brew install` for Mac or `apt install` for Ubuntu. Depending on what document types you're parsing, you may not need all of these.
     - `libmagic-dev` (filetype detection)
@@ -52,14 +60,7 @@ To get started with WeDoScribble, follow these steps:
 
     **Note**: two methods associated with web search and reading webpages are implemented. By default, the agent uses DuckDuckGo without browser, which is faster. However without JavaScript not all pages are available. Another option uses Google Search via Selenium, which operates headless browser instances, in which case you should also install `chromium` (`/usr/bin/chromium`).
 
-4. **Set up API keys**:
-    Create a `~/.streamlit/secrets.toml` file and add your OpenAI and OpenWeatherMap API keys:
-    ```toml
-    OPENAI_API_KEY = "your_openai_api_key"
-    OPENWEATHERMAP_API_KEY = "your_openweathermap_api_key"
-    ```
-
-5. **Run the application**:
+4. **Run the application**:
     ```bash
     streamlit run app.py
     ```

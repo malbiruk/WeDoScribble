@@ -5,7 +5,7 @@ from langchain.tools import tool
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_community.document_loaders.unstructured import \
     UnstructuredFileLoader
-from tools.google_search import summarize
+from tools.web_search import summarize
 
 
 @tool
