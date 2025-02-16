@@ -6,33 +6,33 @@ from langchain.tools import tool
 
 
 def parse_conversation(conversation):
-    lines = conversation.strip().split('\n')
+    lines = conversation.strip().split("\n")
     messages = []
     role = None
-    content = ''
+    content = ""
     for line in lines:
         line = line.strip()
-        if line.startswith('human:'):
+        if line.startswith("human:"):
             if role is not None:
-                messages.append({'role': role, 'content': content.strip()})
-            role = 'human'
+                messages.append({"role": role, "content": content.strip()})
+            role = "human"
             content = line[6:].strip()
-        elif line.startswith('ai:'):
+        elif line.startswith("ai:"):
             if role is not None:
-                messages.append({'role': role, 'content': content.strip()})
-            role = 'ai'
+                messages.append({"role": role, "content": content.strip()})
+            role = "ai"
             content = line[3:].strip()
         elif line:
-            content += '\n' + line
+            content += "\n" + line
     if role is not None:
-        messages.append({'role': role, 'content': content.strip()})
+        messages.append({"role": role, "content": content.strip()})
     return messages
 
 
 def create_export_dialogue_tool(history):
     @tool
     def export_dialogue(out_path: str) -> None:
-        '''
+        """
         save messages history to out_path.
 
         Is used when user asks to export/save current dialogue.
@@ -40,11 +40,11 @@ def create_export_dialogue_tool(history):
         If user doesn't specify out_path, generate a useful name \
         (as a title to the current dialogue),
         but keep it lowercase and with "_" instead of spaces
-        '''
-        messages_history = '\n\n'.join([f'{msg.type}: {msg.content}'
+        """
+        messages_history = "\n\n".join([f"{msg.type}: {msg.content}"
                                         for msg in history.messages])
 
-        with open(Path(out_path), 'w', encoding='utf-8') as f:
+        with Path(out_path).open("w") as f:
             f.write(messages_history)
 
     return export_dialogue
@@ -52,31 +52,32 @@ def create_export_dialogue_tool(history):
 
 def create_import_dialogue_tool(history):
     @tool
-    def import_dialogue(file_path: str, override_current: bool = True) -> str:
-        '''
+    def import_dialogue(file_path: str) -> str:
+        """
         import messages history from file_path
 
         override_current argument clears current dialogue before loading
 
         Is used when user asks to import/load dialogue/conversation.
-        '''
+        """
         try:
-            with open(Path(file_path), encoding='utf-8') as f:
+            with Path(file_path).open() as f:
                 conversation = f.read()
             messages = parse_conversation(conversation)
 
-            if override_current:
-                history.clear()
+            history.clear()
             for msg in messages:
-                if msg['role'] == 'human':
-                    history.add_user_message(msg['content'])
+                if msg["role"] == "human":
+                    history.add_user_message(msg["content"])
                 else:
-                    history.add_ai_message(msg['content'])
+                    history.add_ai_message(msg["content"])
 
             st.rerun()
-            return "The conversation is successfully loaded."
 
         except FileNotFoundError:
             return "Provided file_path does not exist!"
+
+        else:
+            return "The conversation is successfully loaded."
 
     return import_dialogue

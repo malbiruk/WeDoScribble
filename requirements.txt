@@ -3,8 +3,9 @@ langchain-ollama
 langchain-community
 langchain-experimental
 streamlit
-nodriver
-beautifulsoup4
+selenium
+webdriver-manager
+rich
 duckduckgo-search
 pyowm
 pytz

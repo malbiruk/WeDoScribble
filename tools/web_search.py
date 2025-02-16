@@ -2,8 +2,7 @@ import asyncio
 import json
 import logging
 
-import nodriver as uc
-from bs4 import BeautifulSoup
+import chromedriver_autoinstaller
 from duckduckgo_search import DDGS
 from langchain.chains.summarize import load_summarize_chain
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -11,13 +10,23 @@ from langchain.tools import tool
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_ollama import ChatOllama
+from rich.logging import RichHandler
+from selenium import webdriver
+from selenium.webdriver.common.by import By
 
-# pylint: disable = unsupported-binary-operation
+chromedriver_autoinstaller.install()
+
+
+FORMAT = "%(message)s"
+logging.basicConfig(
+    level="INFO", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()],
+)
 
 logger = logging.getLogger(__name__)
 
+
 llm = ChatOllama(temperature=0,
-                 model='llama3.2:3b')
+                 model="llama3.2:1b")
 
 default_prompt = """
 Write a summary of the following text for "{query}":
@@ -25,56 +34,73 @@ Write a summary of the following text for "{query}":
 SUMMARY:
 """
 
+map_prompt_template = PromptTemplate(
+    template=default_prompt, input_variables=["text", "query"])
 
-def summarize(query, content, prompt=default_prompt) -> str:
-    text_splitter = RecursiveCharacterTextSplitter(
-        separators=["\n\n", "\n"], chunk_size=30000 * 4, chunk_overlap=4000)
-    docs = text_splitter.create_documents([content])
+summary_chain = load_summarize_chain(
+    llm=llm,
+    chain_type="map_reduce",
+    map_prompt=map_prompt_template,
+    combine_prompt=map_prompt_template,
+    verbose=False,
+)
 
-    map_prompt_template = PromptTemplate(
-        template=prompt, input_variables=["text", "query"])
-
-    summary_chain = load_summarize_chain(
-        llm=llm,
-        chain_type="map_reduce",
-        map_prompt=map_prompt_template,
-        combine_prompt=map_prompt_template,
-        verbose=False,
-    )
-
-    return summary_chain.run(input_documents=docs, query=query)
-
-
-async def get_website_text(url: str) -> str:
-    browser = await uc.start(headless=True)
-    page = await browser.get(url)
-    page_content = await page.get_content()
-    soup = BeautifulSoup(page_content)
-    await page.close()
-    return soup.get_text()
-
-
-async def ddg_search(query: str, n_results: int) -> list[dict]:
-    """
-    fetches and returns the full text content \
-    of top n_results from DuckDuckGo for a given query
-    """
-    results = DDGS().text(query, max_results=n_results)
-    links = [result["href"] for result in results]
-    tasks = [get_website_text(link) for link in links]
-    results = await asyncio.gather(*tasks)
-    return [{'contents': result, 'link': link}
-            for result, link in zip(results, links) if result]
-
-
-async def extract_relevant_information(query, content) -> str:
-    extract_prompt = """
+extract_prompt = """
 Extract chunks of relevant information for "{query}" from the text below:
 "{text}"
 RELEVANT INFORMATION:
 """
-    prompt = PromptTemplate.from_template(extract_prompt)
-    extraction_chain = prompt | llm | StrOutputParser()
+prompt = PromptTemplate.from_template(extract_prompt)
+extraction_chain = prompt | llm | StrOutputParser()
+
+
+async def summarize(query, content) -> str:
+    text_splitter = RecursiveCharacterTextSplitter(
+        separators=["\n\n", "\n"], chunk_size=30000 * 4, chunk_overlap=4000)
+    docs = text_splitter.create_documents([content])
+
+    return await summary_chain.ainvoke({"input_documents": docs, "query": query})
+
+
+def get_website_text(url: str) -> str:
+    logger.info("started reading %s", url)
+    driver = webdriver.Chrome()
+    driver.get(url)
+    driver.execute_script(
+        """
+    new Promise((resolve) => {
+        if (document.readyState === 'complete') {
+            resolve();
+        } else {
+            document.addEventListener('readystatechange', () => {
+                if (document.readyState === 'complete') {
+                    resolve();
+                }
+            });
+        }
+    });
+""")
+    text_content = driver.find_element(By.XPATH, "/html/body").text
+    driver.close()
+    logger.info("finished reading %s", url)
+    return text_content
+
+
+async def ddg_search(query: str) -> list[dict]:
+    """
+    fetches and returns the full text content \
+    of top n_results from DuckDuckGo for a given query
+    """
+    n_results = 3
+    results = DDGS().text(query, max_results=n_results)
+    links = [result["href"] for result in results]
+    tasks = [asyncio.to_thread(get_website_text, link) for link in links]
+    results = await asyncio.gather(*tasks)
+    return [{"contents": result, "link": link}
+            for result, link in zip(results, links) if result]
+
+
+async def extract_relevant_information(query, content) -> str:
     if len(content) < 85000 * 4:
         return await extraction_chain.ainvoke({"text": content, "query": query})
 
@@ -84,12 +110,12 @@ RELEVANT INFORMATION:
 
 
 async def search_and_extract(query: str):
-    full_pages = await ddg_search(query, 5)
+    full_pages = await ddg_search(query)
 
     async def process_page_extract(res, query):
-        if res['contents']:
-            extracted_info = await extract_relevant_information(query, res['contents'])
-            return {'contents': extracted_info, 'link': res['link']}
+        if res["contents"]:
+            extracted_info = await extract_relevant_information(query, res["contents"])
+            return {"contents": extracted_info, "link": res["link"]}
         return None
 
     tasks = [process_page_extract(res, query) for res in full_pages]
@@ -101,7 +127,7 @@ async def search_and_extract(query: str):
 def web_search(query: str) -> str:
     """
     fetches and returns the relevant text content \
-    from the top 5 webpages of the first web search page \
+    from the top 7 webpages of the first web search page \
     for a given query along with the source URLs as json
     """
     results = asyncio.run(search_and_extract(query))
@@ -123,5 +149,4 @@ def read_webpage(url: str) -> str:
     content = asyncio.run(get_website_text(url))
     if len(content) < 85000 * 4:
         return content
-    else:
-        return "Couldn't load the website contents. It's too big."
+    return "Couldn't load the website contents. It's too big."

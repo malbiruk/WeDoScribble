@@ -46,7 +46,9 @@ To get started with WeDoScribble, follow these steps:
     ```
 
     ```bash
-    ollama pull deepseek-r1
+    ollama pull llama3.1:8b
+    ollama pull llama3.2:1b
+    ollama pull llava:7b
     ```
 
 3. **Install system dependencies**:
