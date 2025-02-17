@@ -1,6 +1,6 @@
 # WeDoScribble
 
-WeDoScribble is an AI assistant designed to help with a variety of tasks, including web searches, file handling, weather information, Python execution, and conversation management. Uses qwen2.5:7b as main agent and llava:7b for vision.
+WeDoScribble is an AI assistant designed to help with a variety of tasks, including web searches, file handling, weather information, Python execution, and conversation management. Uses qwen2.5:7b as main agent and llava-phi3:3.8b for vision.
 
 ## Demo
 https://github.com/user-attachments/assets/98c054cb-1de2-4a8c-a0f3-acab8eb2fc30
@@ -47,7 +47,7 @@ To get started with WeDoScribble, follow these steps:
 
     ```bash
     ollama pull qwen2.5:7b
-    ollama pull llava:7b
+    ollama pull llava-phi3:3.8b
     ```
 
 3. **Install system dependencies**:

@@ -12,7 +12,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_ollama import ChatOllama
 from tools.web_search import summarize
 
-llm = ChatOllama(model="llava:7b", temperature=0)
+llm = ChatOllama(model="llava-phi3:3.8b", temperature=0)
 
 
 def prompt_func(data):
