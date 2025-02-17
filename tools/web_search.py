@@ -12,6 +12,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_ollama import ChatOllama
 from rich.logging import RichHandler
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
 chromedriver_autoinstaller.install()
@@ -26,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 llm = ChatOllama(temperature=0,
-                 model="llama3.2:1b")
+                 model="qwen2.5:7b")
 
 default_prompt = """
 Write a summary of the following text for "{query}":
@@ -64,22 +65,10 @@ async def summarize(query, content) -> str:
 
 def get_website_text(url: str) -> str:
     logger.info("started reading %s", url)
-    driver = webdriver.Chrome()
+    chrome_options = Options()
+    driver = webdriver.Chrome(options=chrome_options)
     driver.get(url)
-    driver.execute_script(
-        """
-    new Promise((resolve) => {
-        if (document.readyState === 'complete') {
-            resolve();
-        } else {
-            document.addEventListener('readystatechange', () => {
-                if (document.readyState === 'complete') {
-                    resolve();
-                }
-            });
-        }
-    });
-""")
+    driver.set_script_timeout(5)
     text_content = driver.find_element(By.XPATH, "/html/body").text
     driver.close()
     logger.info("finished reading %s", url)
@@ -112,9 +101,12 @@ async def extract_relevant_information(query, content) -> str:
 async def search_and_extract(query: str):
     full_pages = await ddg_search(query)
 
-    async def process_page_extract(res, query):
+    async def process_page_extract(res, _query):
         if res["contents"]:
-            extracted_info = await extract_relevant_information(query, res["contents"])
+            # logging.info("summarizing %s", res["link"])
+            # extracted_info = await extract_relevant_information(query, res["contents"])
+            # logging.info("finished summarizing %s", res["link"])
+            extracted_info = res["contents"]
             return {"contents": extracted_info, "link": res["link"]}
         return None
 
@@ -127,7 +119,7 @@ async def search_and_extract(query: str):
 def web_search(query: str) -> str:
     """
     fetches and returns the relevant text content \
-    from the top 7 webpages of the first web search page \
+    from the top 3 webpages of the first web search page \
     for a given query along with the source URLs as json
     """
     results = asyncio.run(search_and_extract(query))

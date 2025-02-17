@@ -35,17 +35,12 @@ def prompt_func(data):
 
 
 @tool
-def see_image(input_dict: str) -> str:
+def see_image(file_path: str, query: str) -> str:
     """
-    Input: dict with keys "file_path", "query"
-
     fetches and returns the text content \
     of a single image file, which path is provided to "file_path".
     "query" is a question about the image.
     """
-    input_dict = json.loads(input_dict)
-    file_path, query = input_dict["file_path"], input_dict["query"]
-
     with Path(file_path).open("rb") as image_file:
         image_b64 = base64.b64encode(image_file.read()).decode("utf-8")
 
@@ -57,41 +52,33 @@ def see_image(input_dict: str) -> str:
 
 
 @tool
-def read_pdf(input_dict: str) -> str:
+def read_pdf(file_path: str, query: str) -> str:
     """
-    Input: dict with keys "file_path", "query"
-
     fetches and returns the summarized text content \
     of a single .pdf file, which path is provided to "file_path".
     "query" should be specified in order to create summary,
     it is an objective of reading the pdf
     """
-    input_dict = json.loads(input_dict)
-    file_path, query = input_dict["file_path"], input_dict["query"]
     loader = PyMuPDFLoader(Path(file_path))
     docs = loader.load()
     data = "".join([doc.page_content for doc in docs])
-    if len(data) > 30000 * 4:
+    if len(data) > 85000 * 4:
         return summarize(query, data)
     return docs
 
 
 @tool
-def read_any_file(input_dict: str) -> str:
+def read_any_file(file_path: str, query: str) -> str:
     """
-    Input: dict with keys "file_path", "query"
-
     fetches and returns the summarized text content \
     of a single file (a lot of formats are supported: tables, html, documents),
     which path is provided to "file_path".
     "query" should be specified in order to create summary,
     it is an objective of reading the file
     """
-    input_dict = json.loads(input_dict)
-    file_path, query = input_dict["file_path"], input_dict["query"]
     loader = UnstructuredFileLoader(Path(file_path), mode="single")
     data = loader.load()
-    if len(data[0].page_content) > 30000 * 4:
+    if len(data[0].page_content) > 85000 * 4:
         return summarize(query, data[0].page_content)
     return data
 

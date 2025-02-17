@@ -10,8 +10,8 @@ def parse_conversation(conversation):
     messages = []
     role = None
     content = ""
-    for line in lines:
-        line = line.strip()
+    for line_ in lines:
+        line = line_.strip()
         if line.startswith("human:"):
             if role is not None:
                 messages.append({"role": role, "content": content.strip()})

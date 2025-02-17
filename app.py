@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 
 import streamlit as st
-from langchain.agents import AgentExecutor, create_react_agent
+from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain_community.agent_toolkits import FileManagementToolkit
 from langchain_community.agent_toolkits.load_tools import load_tools
 from langchain_community.callbacks.streamlit import StreamlitCallbackHandler
@@ -18,9 +18,9 @@ from langchain_community.chat_message_histories import \
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_experimental.tools import PythonREPLTool
-from langchain_ollama import ChatOllama
 from PIL import Image
 from rich.logging import RichHandler
+from tools.web_search import llm
 
 logging.getLogger("langchain_core.callbacks.manager").setLevel(logging.ERROR)
 
@@ -28,7 +28,7 @@ FORMAT = "%(message)s"
 logging.basicConfig(
     level="INFO", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()],
 )
-
+logger = logging.getLogger(__name__)
 
 os.environ["OPENWEATHERMAP_API_KEY"] = st.secrets["OPENWEATHERMAP_API_KEY"]
 
@@ -70,11 +70,6 @@ def main():
               "wedoscribble/prompts/system_prompt.txt").open() as f:
         system_prompt = f.read()
 
-    llm = ChatOllama(
-        model="llama3.1:8b",
-        temperature=0,
-    )
-
     from tools.import_export_dialogue import (create_export_dialogue_tool,
                                               create_import_dialogue_tool)
     from tools.read_files import (read_any_file, read_google_docs, read_pdf,
@@ -95,10 +90,23 @@ def main():
         selected_tools=["write_file", "list_directory", "file_search"],
     ).get_tools()]
 
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", system_prompt),
-    ])
-    agent = create_react_agent(llm, tools, prompt)
+    # prompt = ChatPromptTemplate.from_messages([
+    #     ("system", system_prompt),
+    # ])
+    # agent = create_react_agent(llm, tools, prompt)
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", system_prompt),
+            # First put the history
+            ("placeholder", "{chat_history}"),
+            # Then the new input
+            ("human", "{input}"),
+            # Finally the scratchpad
+            ("placeholder", "{agent_scratchpad}"),
+        ],
+    )
+    agent = create_tool_calling_agent(llm, tools, prompt)
 
     agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True,
                                    handle_parsing_errors=True)
